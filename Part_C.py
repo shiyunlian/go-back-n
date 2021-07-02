@@ -1,11 +1,11 @@
-from socket import *
-serverPort = 1234
-serverSocket = socket(AF_INET,SOCK_STREAM)
-serverSocket.bind(('',serverPort))
+import socket
+PORT = 1234
+serverSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+serverSocket.bind(('',PORT))
+print('Server is ready to listen')
 
 try:
     serverSocket.listen(10)
-    print('success')
+    print('Server is listening...')
 except:
-    print('failure')
-    
+    print('Server is not listening...')
