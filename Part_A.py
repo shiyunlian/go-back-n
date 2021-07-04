@@ -6,9 +6,9 @@ try:
 except:
     print('Unable to get the IP of the host')
 
-# hostName1 = 'www.google.com'
-# ipAddress1 = socket.gethostbyname(hostName1)
-# print(ipAddress1)
+hostName1 = 'www.google.com'
+ipAddress1 = socket.gethostbyname(hostName1)
+print(ipAddress1)
 
 # hostName2 = 'https://sjsu.edu/'
 # try:
