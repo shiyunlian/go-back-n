@@ -1,95 +1,62 @@
-import time, socket, sys
-
-def decimalToBinary(n):  
-    return n.replace("0b", "")
-
-def binarycode(s):
-    a_byte_array = bytearray(s, "utf8")
-
-    byte_list = []
-
-    for byte in a_byte_array:
-        binary_representation = bin(byte)
-        byte_list.append(decimalToBinary(binary_representation))
-
-    #print(byte_list)
-    a=""
-    for i in byte_list:
-        a=a+i
-    return a
-
-print("\nWelcome to Chat Room\n")
-print("Initialising....\n")
-time.sleep(1)
+import time, socket
 
 s = socket.socket()
 host = socket.gethostname()
 ip = socket.gethostbyname(host)
-port = 1234
-s.bind((host, port))
-print(host, "(", ip, ")\n")
-name = input(str("Enter your name: "))
-           
+PORT = 1234
+s.bind((host, PORT))
+print(host, "(", ip, ")")
+     
 s.listen(1)
-print("\nWaiting for incoming connections...\n")
+print("Server is listening...")
 conn, addr = s.accept()
-print("Received connection from ", addr[0], "(", addr[1], ")\n")
-
-s_name = conn.recv(1024)
-s_name = s_name.decode()
-print(s_name, "has connected to the chat room\nEnter [e] to exit chat room\n")
-conn.send(name.encode())
+print("Established connection from ", addr[0])
 
 while True:
-    message = input(str("Me : "))
-    conn.send(message.encode())
-    if message == "[e]":
-        message = "Left chat room!"
+    message = input(str("Please enter the bits of sequence number or 'exit' to exit the program: "))
+    if message == "exit":
         conn.send(message.encode())
-        print("\n")
+        print("Program terminated.")
         break
-    message=binarycode(message)
-    f=str(len(message))
-    conn.send(f.encode())
-   
-    i=0
-    j=0
-    j=int(input("Enter the window size -> "))
-    
-   
-    b=""
-   
-    j=j-1
-    f=int(f)
-    k=j
-    while i!=f:
-        while(i!=(f-j)):
-            conn.send(message[i].encode())
-            b=conn.recv(1024)
-            b=b.decode()
-            print(b)
-            if(b!="ACK Lost"):
+    conn.send(message.encode())
+    seq_num_range=pow(2,int(message))-1
+    print("The range of sequence number is 0 to", seq_num_range)
+    n=0
+    message_list = ""
+    while n < seq_num_range:
+        message_list= message_list+str(n)
+        n+=1
+    win_size=int(input("Please enter the window size: "))
+    win_size=win_size-1
+    win_begin=0
+    win_end=win_size
+    ack_message=""
+    while win_begin!=seq_num_range:
+        while(win_begin!=(seq_num_range-win_size)):
+            conn.send(message_list[win_begin].encode())
+            ack_message=conn.recv(1024).decode()
+            print(ack_message)
+            if(ack_message!="ACK Lost"):
                 time.sleep(1)
-                print("Acknowledgement Received! The sliding window is in the range "+(str(i+1))+" to "+str(k+1)+" Now sending the next packet")
-                i=i+1
-                k=k+1
+                print("Acknowledgement received! The sliding window is in the range "+(str(win_begin+1))+" to "+str(win_end+1)+". Send the next sequence number.")
+                win_begin=win_begin+1
+                win_end=win_end+1
                 time.sleep(1)
             else:
                 time.sleep(1)
-                print("Acknowledgement of the data bit is LOST! The sliding window remains in the range "+(str(i+1))+" to "+str(k+1)+" Now Resending the same packet")
+                print("Acknowledgement lost! The sliding window remains in the range "+(str(win_begin+1))+" to "+str(win_end+1)+". Resend the same sequence number.")
                 time.sleep(1)
-        while(i!=f):
-            
-            conn.send(message[i].encode())
-            b=conn.recv(1024)
-            b=b.decode()
-            print(b)
-            if(b!="ACK Lost"):
+
+        while(win_begin!=seq_num_range):
+            conn.send(message_list[win_begin].encode())
+            ack_message=conn.recv(1024).decode()
+            print(ack_message)
+            if(ack_message!="ACK Lost"):
                 time.sleep(1)
-                print("Acknowledgement Received! The sliding window is in the range "+(str(i+1))+" to "+str(k)+" Now sending the next packet")
-                i=i+1
+                print("Acknowledgement received! The sliding window is in the range "+(str(win_begin+1))+" to "+str(win_end)+". Send the next sequence number.")
+                win_begin=win_begin+1
                 time.sleep(1)
             else:
                 time.sleep(1)
-                print("Acknowledgement of the data bit is LOST! The sliding window remains in the range "+(str(i+1))+" to "+str(k)+" Now Resending the same packet")
+                print("Acknowledgement lost! The sliding window remains in the range "+(str(win_begin+1))+" to "+str(win_end)+". Resend the same sequence number.")
                 time.sleep(1)
