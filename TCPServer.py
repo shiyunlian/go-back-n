@@ -1,7 +1,7 @@
-import socket
+import socket,random
 
 # creates the server’s socket
-serverSocket = socket.socket(AF_INET,SOCK_STREAM)
+serverSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 host = socket.gethostname()
 ip = socket.gethostbyname(host)
 PORT = 1234
@@ -19,7 +19,7 @@ while True:
 
     while True:
 
-        message=s.recv(1024).decode()
+        message=serverSocket.recv(1024).decode()
         if(message=='exit'):
             print("Program terminated.")
             break
@@ -32,13 +32,13 @@ while True:
             random_num=random.randint(0,9)
             if(random_num==0):
                 ack_message="ACK Lost"
-                message = s.recv(1024).decode()
-                s.send(ack_message.encode())
+                message = serverSocket.recv(1024).decode()
+                serverSocket.send(ack_message.encode())
 
             else:
                 ack_message="ACK "+str(win_begin)
-                message = s.recv(1024).decode()
-                s.send(ack_message.encode())
+                message = serverSocket.recv(1024).decode()
+                serverSocket.send(ack_message.encode())
                 win_begin=win_begin+1
 
     connectionSocket.close()

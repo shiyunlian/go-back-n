@@ -6,7 +6,7 @@ import time, socket
 serverName = '10.0.0.81'
 serverPort = 1234
 
-clientSocket = socket(AF_INET, SOCK_STREAM)
+clientSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 
 # initiates the TCP connection between the client and server.
 clientSocket.connect((serverName,serverPort))
@@ -22,10 +22,10 @@ print('From Server:' , response.decode())
 while True:
     message = input(str("Please enter the bits of sequence number or 'exit' to exit the program: "))
     if message == "exit":
-        conn.send(message.encode())
+        clientSocket.send(message.encode())
         print("Program terminated.")
         break
-    conn.send(message.encode())
+    clientSocket.send(message.encode())
     seq_num_range=pow(2,int(message))-1
     print("The range of sequence number is 0 to", seq_num_range)
     
@@ -43,8 +43,8 @@ while True:
     
     while win_begin!=seq_num_range:
         while(win_begin!=(seq_num_range-win_size)):
-            conn.send(message_list[win_begin].encode())
-            ack_message=conn.recv(1024).decode()
+            clientSocket.send(message_list[win_begin].encode())
+            ack_message=clientSocket.recv(1024).decode()
             print(ack_message)
             if(ack_message!="ACK Lost"):
                 time.sleep(1)
@@ -58,8 +58,8 @@ while True:
                 time.sleep(1)
 
         while(win_begin!=seq_num_range):
-            conn.send(message_list[win_begin].encode())
-            ack_message=conn.recv(1024).decode()
+            clientSocket.send(message_list[win_begin].encode())
+            ack_message=clientSocket.recv(1024).decode()
             print(ack_message)
             if(ack_message!="ACK Lost"):
                 time.sleep(1)
