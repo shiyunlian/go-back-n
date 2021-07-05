@@ -1,59 +1,36 @@
-import time, socket, sys
-import random
-
-print("\nWelcome to Chat Room\n")
-print("Initialising....\n")
-time.sleep(1)
+import time, socket, random
 
 s = socket.socket()
 shost = socket.gethostname()
 ip = socket.gethostbyname(shost)
-print(shost, "(", ip, ")\n")
-host = input(str("Enter server address: "))
-name = input(str("\nEnter your name: "))
+print(shost, "(", ip, ")")
+host = '10.0.0.175'
 port = 1234
-print("\nTrying to connect to ", host, "(", port, ")\n")
-time.sleep(1)
+print("Trying to connect to " + host)
 s.connect((host, port))
-print("Connected...\n")
-
-s.send(name.encode())
-s_name = s.recv(1024)
-s_name = s_name.decode()
-print(s_name, "has joined the chat room\nEnter [e] to exit chat room\n")
+print("Connection established.")
 
 while True:
 
-    m=s.recv(1024)
-    m=m.decode()
-    k=s.recv(1024)
-    k=k.decode()
-    k=int(k)
-    i=0
-    a=""
-    b=""
-    f=random.randint(0,1)
+    message=s.recv(1024).decode()
+    if(message=='exit'):
+        print("Program terminated.")
+        break
+    seq_num_range=pow(2,int(message))-1
+    win_begin=0
+    ack_message=""
     message=""
-    while i!=k:
-       
-       
-       f=random.randint(0,1)
-       if(f==0):
-          b="ACK Lost"
-          message = s.recv(1024)
-          message = message.decode()
-          s.send(b.encode())
-         
-       elif(f==1):
-          b="ACK "+str(i)
-          message = s.recv(1024)
-          message = message.decode()
-          
-          s.send(b.encode())
-          a=a+message
-          i=i+1
-          
-       
-    
-    print("The message received is :", m)
+    while win_begin!=seq_num_range:
+           
+       random_num=random.randint(0,9)
+       if(random_num==0):
+          ack_message="ACK Lost"
+          message = s.recv(1024).decode()
+          s.send(ack_message.encode())
+
+       else:
+          ack_message="ACK "+str(win_begin)
+          message = s.recv(1024).decode()
+          s.send(ack_message.encode())
+          win_begin=win_begin+1
    
