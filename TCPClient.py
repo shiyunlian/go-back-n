@@ -22,11 +22,12 @@ print('From Server:' , response.decode())
 while True:
 
     message = input(str("Please enter the bits of sequence number or 'exit' to exit the program: "))
+
     if message == "exit":
         clientSocket.send(message.encode())
         print("Program terminated.")
         break
-
+    
     # send the message to server
     clientSocket.send(message.encode())
 
