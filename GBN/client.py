@@ -20,14 +20,14 @@ ACK_ERROR_PROBABILITY = 0.05 # Probability for ACK lost
 msg = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" # Message to send
 messageToSend = msg * numberPackets # Send the message N times
 
-print "|-|-|-|-|-|-|-|-|-| Sender info |-|-|-|-|-|-|-|-|-| "
-print "host: " + host
-print "protocol: " + protocol
-print "Window size: " + str(windowSize)
-print "Timeout: " + str(TIMEOUT)
-print "MSS: " + str(MSS)
-print "Port: " + str(port)
-print "Number of packets to send: " + str((len(messageToSend) / MSS) + 1)
+print ("|-|-|-|-|-|-|-|-|-| Sender info |-|-|-|-|-|-|-|-|-| ")
+print ("host: " + host)
+print ("protocol: " + protocol)
+print ("Window size: " + str(windowSize))
+print ("Timeout: " + str(TIMEOUT))
+print ("MSS: " + str(MSS))
+print ("Port: " + str(port))
+print ("Number of packets to send: " + str((len(messageToSend) / MSS) + 1))
 
 seqNum = 0
 firstInWindow = -1
@@ -98,7 +98,7 @@ def ResendPackets():
 	while iterator <= lastInWindow:
 		if sendBuffer[iterator % windowSize] != None:
 			packet = sendBuffer[iterator % windowSize]
-			print "Resending packet: S" + str(iterator) + "; Timer started"
+			print ("Resending packet: S" + str(iterator) + "; Timer started")
 			clientSocket.sendto(packet, (host, port))
 			timeoutTimers[iterator % windowSize] = TIMEOUT
 		iterator += 1
@@ -128,7 +128,7 @@ def Signalhandler(signum, _):
 			timeoutTimers[i] = eachtimer - 1
 
 		if len(timeoutTimers) > (firstInWindow % windowSize) and timeoutTimers[firstInWindow % windowSize] == 0:
-			print "Timeout, sequence number =", firstInWindow
+			print ("Timeout, sequence number =", firstInWindow)
 			lock.acquire()
 			ResendPackets()
 			lock.release()
@@ -140,9 +140,9 @@ def Signalhandler(signum, _):
 			timeoutTimers[iterator % windowSize] = timeoutTimers[iterator % windowSize] - 1
 			lock.acquire()
 			if timeoutTimers[iterator % windowSize] < 1 and sendBuffer[iterator % windowSize] != None:
-				print "Timeout, sequence number =", iterator
+				print ("Timeout, sequence number =", iterator)
 				packet = sendBuffer[iterator % windowSize]
-				print "Resending packet: S" + str(iterator) + "; Timer started"
+				print ("Resending packet: S" + str(iterator) + "; Timer started")
 				clientSocket.sendto(packet, (host, port))
 				timeoutTimers[iterator % windowSize] = TIMEOUT
 			lock.release()
@@ -169,7 +169,7 @@ def LookforACKs():
 			ackNum = ack[0]
 			if ACK_ERROR_PROBABILITY < random.random():
 				if ackNum == seqNum:
-					print "Received ACK: ", ackNum
+					print ("Received ACK: ", ackNum)
 					lock.acquire()
 					iterator = firstInWindow
 					while iterator <= lastInWindow:
@@ -179,7 +179,7 @@ def LookforACKs():
 						firstInWindow = firstInWindow + 1
 					lock.release()
 				elif ackNum == lastAcked + 1:
-					print "Received ACK: ", ackNum
+					print ("Received ACK: ", ackNum)
 					lock.acquire()
 					sendBuffer[ackNum % windowSize] = None
 					timeoutTimers[ackNum % windowSize] = 0
@@ -191,7 +191,7 @@ def LookforACKs():
 				if sendComplete and lastAcked >= lastInWindow:
 					ackedComplete = True
 			else:
-				print "Ack " + str(ackNum) + " lost (Info for simulation)."
+				print （"Ack " + str(ackNum) + " lost (Info for simulation)."）
 
 	# Protocol = Selective repeat
 	elif protocol == "SR":
@@ -200,7 +200,7 @@ def LookforACKs():
 			ack = unpack('IHH', packet)
 			ackNum = ack[0]
 			if ACK_ERROR_PROBABILITY < random.random():
-				print "Received ACK: ", ackNum
+				print ("Received ACK: ", ackNum)
 				if ackNum == firstInWindow:
 					lock.acquire()
 					sendBuffer[firstInWindow % windowSize] = None
@@ -217,7 +217,7 @@ def LookforACKs():
 				if sendComplete and numAcked >= lastInWindow:
 					ackedComplete = True
 			else:
-				print "Ack " + str(ackNum) + " lost (Info for simulation)."
+				print ("Ack " + str(ackNum) + " lost (Info for simulation).")
 
 # Start thread looking for acknowledgements
 threadForAck = threading.Thread(target=LookforACKs, args=())
@@ -244,7 +244,7 @@ while not sendComplete:
 		sendBuffer[toSend % windowSize] = packet
 		timeoutTimers[toSend % windowSize] = TIMEOUT
 
-	print "Sending S" + str(seqNum) + "; Timer started"
+	print ("Sending S" + str(seqNum) + "; Timer started")
 	if BIT_ERROR_PROBABILITY > random.random():
 		error_data = "0123456789012345678012345678012345678012345678012345678"
 		packet = pack('IHH' + str(len(error_data)) + 's', seqNum, checksum, header, data)

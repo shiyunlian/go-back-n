@@ -37,13 +37,13 @@ def main():
 	host = '127.0.0.1'
 	protocol = sys.argv[2]
 	windowSize = 0
-	print "|-|-|-|-|-|-|-|-|-| Receiver info |-|-|-|-|-|-|-|-|-|"
-	print "Hostname: " + host
-	print "Port: " + str(port)
-	print "Protocol: " + protocol
+	print ("|-|-|-|-|-|-|-|-|-| Receiver info |-|-|-|-|-|-|-|-|-|")
+	print ("Hostname: " + host)
+	print ("Port: " + str(port))
+	print ("Protocol: " + protocol)
 	if protocol == 'SR':
 		windowSize = int(sys.argv[3])
-		print "Window size: " + str(windowSize)
+		print ("Window size: " + str(windowSize))
 
 
 
@@ -74,30 +74,30 @@ def main():
 			checksum = packet[1]
 			header = packet[2]
 			data = packet[3]
-			print "Packet received for S" + str(seqNum)
+			print ("Packet received for S" + str(seqNum))
 
 			# Protocol = Go back N
 			if protocol == "GBN":
 				if Checksum(checksum, seqNum, header, data):
 					if seqNum == lastReceived + 1:
-						print "ACK sent for S" + str(seqNum)
+						print ("ACK sent for S" + str(seqNum))
 						SendAck(seqNum, addr, serverSocket)
 						lastReceived = seqNum
 					elif seqNum != lastReceived + 1 and seqNum > lastReceived + 1:
 						if lastReceived >= 0:
-							print "(Packet out of order, discarded): last received packet in sequence: packet " \
-								  + str(lastReceived)
+							print ("(Packet out of order, discarded): last received packet in sequence: packet " \
+								  + str(lastReceived))
 					else:
-						print "ACK sent for S" + str(seqNum)
+						print ("ACK sent for S" + str(seqNum))
 						SendAck(seqNum, addr, serverSocket)
 						lastReceived = seqNum
 				else:
-					print "Packet discarded. Checksum not matching."
+					print ("Packet discarded. Checksum not matching.")
 
 			# Protocol = Selective repeat
 			elif protocol == "SR":
 				if seqNum < firstInWindow:
-					print "Old packet received: S" + str(seqNum)
+					print ("Old packet received: S" + str(seqNum))
 					SendAck(seqNum, addr, serverSocket)
 				else:
 					if Checksum(checksum, seqNum, header, data):
@@ -110,12 +110,12 @@ def main():
 							elif received[seqNum % windowSize] == 0:
 								receiveBuffer[seqNum % windowSize] = packet
 								received[seqNum % windowSize] = 1
-						print "ACK sent for S" + str(seqNum)
+						print ("ACK sent for S" + str(seqNum))
 						SendAck(seqNum, addr, serverSocket)
 					else:
-						print "Packet discarded. Checksum not matching."
+						print ("Packet discarded. Checksum not matching.")
 		else:
-			print "Packet S" + str(packet[0]) + " lost. (Info for simulation)"
+			print ("Packet S" + str(packet[0]) + " lost. (Info for simulation)")
 
 if __name__ == '__main__':
 	main()
