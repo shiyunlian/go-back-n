@@ -16,7 +16,7 @@ try:
 except:
     print('Server is not listening...')
 
-# server establishes incoming connection
+# server establishes connection
 try:
     connectionSocket, addr = serverSocket.accept()
     response = 'success' if connectionSocket.recv(1024).decode() == 'network' else 'failure'
