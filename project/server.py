@@ -25,18 +25,18 @@ try:
 except:
     print("Connection failed")
 
-    packet_receive = 0
-    prob_lost = 0.01
-    last_receive = -1
-    # received = []
-    # received_buffer = []
+packet_receive = 0
+prob_lost = 0.01
+last_receive = -1
+# received = []
+# received_buffer = []
 
-    # for i in range(win_size):
-    #     received.append(0)
-    #     received_buffer.append(None)
+# for i in range(win_size):
+#     received.append(0)
+#     received_buffer.append(None)
 
-    ack_message = ""
-    message = ""
+ack_message = ""
+message = ""
 
 while True:
     # receive the first byte of packet
