@@ -1,0 +1,16 @@
+Elapsed time:  32.7
+Total packets required: 100000
+Sent total packets: 153851
+Received total packets: 152283
+Lost total packets: 1568
+Resent total packets:  53851
+Average good-put:  0.99
+Packet resent time 1: 33250
+Packet resent time 2: 16874
+Packet resent time 3: 3231
+Packet resent time 4: 476
+Packet resent time 5: 20
+Packet resent time 6: 0
+Packet resent time 7: 0
+Packet resent time 8: 0
+Resent total packets: 53851
