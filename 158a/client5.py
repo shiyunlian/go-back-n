@@ -26,7 +26,7 @@ win_size_time_buffer = []
 win_start = 0
 win_end = win_start + win_size - 1
 limit = 65536
-packet_num = 10000
+packet_num = 100000
 recent_packet = 0
 ack = -1
 countdown = int(packet_num / limit)+1
@@ -90,7 +90,7 @@ while countdown > 0:
         client_socket.send(recent_packet.encode())
         print("Sent packet", recent_packet)
         counter += 1
-        time.sleep(0.01)
+        time.sleep(0.002)
 
     #time.sleep(0.01)
 

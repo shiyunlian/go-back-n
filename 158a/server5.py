@@ -47,7 +47,7 @@ is_last_packet_received = False
 last_packet = -1 
 
 # total packets to be sent
-packet_num = 10000
+packet_num = 100000
 
 receive_packets = 0     # a counter to keep track of number of packets receive 
 receive_packets_buffer =[] # an array to store packets received in order
