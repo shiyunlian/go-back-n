@@ -4,7 +4,7 @@ s = socket.socket()
 shost = socket.gethostname()
 ip = socket.gethostbyname(shost)
 print(shost, "(", ip, ")")
-host = '10.0.0.175'
+host = '127.0.0.1'
 port = 1234
 print("Trying to connect to " + host)
 s.connect((host, port))
