@@ -73,6 +73,8 @@ track_packet_num_buffer = []    # an array to keep track of packet received numb
 track_packet_num_time_buffer = []   # an array to keep track of packet received time
 
 last_ack_sent = -1 # calculate the last ack sent based on the packet number and sequence number limit
+
+# if packet_num >= limit
 if packet_num > limit:
     last_ack_sent = packet_num % limit - 1
 else:
@@ -101,7 +103,7 @@ def ShrinkWindowSize():
 
 # expand window size twice if no packet is dropped
 def ExpandWindowSize():
-    global win_size, win_size_buffer
+    global win_size, win_size_buffer, win_size_time_buffer
     win_size_time_buffer.append(round(time.time() - start_time, 1))
     if win_size < 128:
         win_size = int(2 * win_size)
@@ -114,10 +116,11 @@ def ExpandWindowSize():
 def HandleLostPacket():
     global last_packet, last_received_packet, expected_packet, is_packet_lost
     is_packet_lost = True
+    # check if expected_packet is 0 or not, if it is 0, then the last packet received is previous cycle limit - 1
     if expected_packet > 0:
         last_packet = expected_packet - 1
     else:
-        last_packet = limit
+        last_packet = limit - 1
     last_received_packet.append(last_packet)
 
     if expected_packet < limit:
@@ -140,8 +143,8 @@ def CalculateAvgGoodPut():
     sum = 0
     for i in range(len(good_put)):
         sum = good_put[i] + sum
-    avg_good_put = sum / len(good_put)
-    return round(avg_good_put, 2)
+    #avg_good_put = sum / len(good_put)
+    return round(sum / len(good_put), 2)
 
 # calculate total number of sent packets
 def CalculateSentPackets():
@@ -209,22 +212,19 @@ while countdown > 0 and all_packets_received == False:
         # if random.random() > 0.01, increment receive_packets, append the packet into receive_packets_buffer and tracket_packet_num_buffer
         if random.random() >= 0.01:
 
-            # check if there is any packet lost before the last packet  
-            if countdown == 1 and recent_packet == last_ack_sent and is_packet_lost == False:
-                print("Received the last packet", recent_packet, "\nAll the packets have been received")
+            if countdown == 1 and recent_packet == last_ack_sent:
+                if is_packet_lost == False:
+                    print("Received the last packet", recent_packet, "\nAll the packets have been received")
+                    all_packets_received = True
+                else:
+                    print("Received packet ", recent_packet, " Expected packet ", expected_packet)
+                    is_last_packet_received = True
                 TrackReceivedPackets()
-                all_packets_received = True
-                break
-
-            elif countdown == 1 and recent_packet == last_ack_sent and is_packet_lost == True:
-                print("Received packet ", recent_packet, " Expected packet ", expected_packet)
-                TrackReceivedPackets()
-                is_last_packet_received = True
                 break
 
             else:
-                TrackReceivedPackets()
-
+                TrackReceivedPackets()  
+                
             # calculate good_put every 1000 packets received
             if len(receive_packets_buffer) == 1000:
                 CalculateGoodPut()
@@ -233,7 +233,7 @@ while countdown > 0 and all_packets_received == False:
             if recent_packet == expected_packet:
                 print("Received packet ", recent_packet, " Expected packet ", expected_packet)
 
-                # check if received packet reaches limit
+                # check if received packet reaches limit and set the next expected_packet properly
                 if recent_packet == limit - 1:
                     sent_complete = True
                     expected_packet = 0
@@ -255,11 +255,11 @@ while countdown > 0 and all_packets_received == False:
             lost_packets_time_buffer.append(round(time.time()-start_time,1))
 
             # if the lost packet reaches limit, then set ack to be previous recent_packet number and break the loop
-            if recent_packet == limit-1: # since packet num starts from 1, the last packet num will be limit - 1
+            if recent_packet == limit - 1: # since packet num starts from 1, the last packet num will be limit - 1
                 HandleLostPacket()
                 break
 
-            # if the lost packet is the first packet, then handle lost packet
+            # if the lost packet is the first packet, set is_first_packet_lost to be true
             elif recent_packet == 0:
                 HandleLostPacket()
                 is_first_packet_lost = True
@@ -385,31 +385,22 @@ plt.title('Window size over time')
 # plot TCP sequence number received over time in the x-axis
 plt.figure(figsize=(8,6))
 plt.plot(track_packet_num_time_buffer,track_packet_num_buffer)
-# x-axis label
 plt.xlabel('Time in seconds')
-# y-axis label
 plt.ylabel('TCP sequence number')
-# plot title
 plt.title('TCP sequence number received over time')
-
 
 # plot TCP sequence number dropped over time in the x-axis
 plt.figure(figsize=(8,6))
 plt.plot(lost_packets_time_buffer, lost_packets_buffer)  
-# x-axis label
 plt.xlabel('Time in seconds')
-# y-axis label
 plt.ylabel('TCP sequence number')
-# plot title
 plt.title('TCP sequence number dropped over time')
 
+# plot TCP sequence number dropped over time in the x-axis
 plt.figure(figsize=(8,6))
 plt.scatter(lost_packets_time_buffer, lost_packets_buffer, marker='*')
-# x-axis label
 plt.xlabel('Time in seconds')
-# y-axis label
 plt.ylabel('TCP sequence number')
-# plot title
 plt.title('TCP sequence number dropped over time')
 
 # plt.figure(figsize=(8,6))

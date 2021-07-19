@@ -27,7 +27,7 @@ win_size_time_buffer = []
 win_start = 0
 win_end = win_start + win_size - 1
 limit = 65536
-packet_num = 100000
+packet_num = 10000
 recent_packet = 0
 ack = -1
 countdown = int(packet_num / limit)+1
@@ -94,8 +94,7 @@ while countdown > 0:
         time.sleep(0.001)
         # time.sleep(0.2)
 
-    time.sleep(0.003)
-    # time.sleep(0.2)
+    time.sleep(0.002)
     # receive ack from server
     ack = client_socket.recv(1024).decode()
 

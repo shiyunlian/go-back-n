@@ -1,17 +1,18 @@
 import socket, time
 
-# serverName='172.16.210.4'
-# serverName='10.0.0.175'
-# serverName='127.0.0.1'
+#serverName='172.16.210.4'
+serverName='10.0.0.175'
+#serverName='127.0.0.1'
 #serverName = '10.0.0.81'
 
 host = socket.gethostname() 
+ip =  socket.gethostbyname(host)
 port = 12340  # socket server port number
 client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)  
-
+print(ip)
 # initiates the TCP connection between the client and server.
 client_socket.connect((host, port)) 
-
+#client_socket.connect((serverName, port)) 
 # send an initial message through the client’s socket and into the TCP connection
 request = 'network'
 client_socket.send(request.encode())
@@ -77,23 +78,24 @@ while countdown > 0:
         if win_start + counter == last_ack_sent and countdown == 1:
             recent_packet = str(win_start + counter)
             client_socket.send(recent_packet.encode())
-            print("Sent packet", recent_packet)
+            #print("Sent packet", recent_packet)
             break
 
         # if the packet num to be sent is greater than limit, break the loop
         if win_start + counter >= limit:
             break
-            # recent_packet = str((win_start + counter) % limit)
         else:
             recent_packet = str(win_start + counter)
 
         client_socket.send(recent_packet.encode())
-        print("Sent packet", recent_packet)
+        #print("Sent packet", recent_packet)
         counter += 1
-        time.sleep(0.002)
+        time.sleep(0.005)
+        # time.sleep(0.2)
+    
 
-    #time.sleep(0.01)
-
+    time.sleep(0.01)
+    # time.sleep(0.2)
     # receive ack from server
     ack = client_socket.recv(1024).decode()
 
@@ -116,7 +118,7 @@ while countdown > 0:
         print("Countdown", countdown)
     else:
         win_start = ack + 1
-    print ('Received ACK', ack) 
+    print ('Received ACK', ack, "Expected Ack",recent_packet) 
 
     # if all the packets sent are acknowledged, expand the window, otherwise, shrink the window
     if ack == int(recent_packet):
