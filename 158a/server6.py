@@ -14,7 +14,7 @@ server_socket.bind((host, port))
 
 # configure how many clients the server can listen simultaneously
 try:
-    server_socket.listen(10)
+    server_socket.listen(1)
     print('Server is listening...')
 except:
     print('Server is not listening...')
@@ -47,7 +47,7 @@ is_last_packet_received = False
 last_packet = -1 
 
 # total packets to be sent
-packet_num = 100000
+packet_num = 10000
 
 receive_packets = 0     # a counter to keep track of number of packets receive 
 receive_packets_buffer =[] # an array to store packets received in order
@@ -55,7 +55,7 @@ receive_packets_buffer =[] # an array to store packets received in order
 sent_packets = 0    # a counter to keep track of number of packets sent
 sent_packets_buffer =[] # an array to store # of sent packets every 1000 packets received
 
-countdown = int(packet_num / limit) +1# a counter to keep track of every 65535 packets out of 10,000,000 packets
+countdown = int(packet_num / limit) + 1 # a counter to keep track of every 65535 packets out of 10,000,000 packets
 
 avg_good_put = 0 
 good_put = [] # an array to store good_put 
@@ -114,12 +114,27 @@ def ExpandWindowSize():
 def HandleLostPacket():
     global last_packet, last_received_packet, expected_packet, is_packet_lost
     is_packet_lost = True
+    # if expected_packet > 0, last_packet is the previous expected_packet, if expected_packet = 0, last_packet is limit
     if expected_packet > 0:
         last_packet = expected_packet - 1
     else:
         last_packet = limit
     last_received_packet.append(last_packet)
 
+    if expected_packet < limit:
+        expected_packet += 1
+    else:
+        expected_packet = 0
+
+# handle out of order packet
+def HandleOutOfOrderPacket():
+    global last_packet, last_received_packet, expected_packet, is_packet_lost, is_out_of_order
+    is_out_of_order = True
+    if expected_packet > 0:
+        last_packet = expected_packet - 1
+    else:
+        last_packet = limit
+    last_received_packet.append(last_packet)
     if expected_packet < limit:
         expected_packet += 1
     else:
@@ -196,6 +211,7 @@ while countdown > 0 and all_packets_received == False:
     while counter < win_size and all_packets_received == False:
 
         # get the packets from client
+        
         recent_packet = conn.recv(1024).decode()
 
         recent_packet = int(recent_packet)
@@ -244,8 +260,8 @@ while countdown > 0 and all_packets_received == False:
 
             else:
                 print ("Received packet ", recent_packet, " Expected packet ", expected_packet, "Out of order packet", recent_packet )
-                out_of_order_packets_buffer.append(recent_packet)
-                HandleLostPacket()
+                out_of_order_packets_buffer.append(expected_packet)
+                HandleOutOfOrderPacket()
                 break
         
         # if the packet is lost, append the lost packet to lost_packets_buffer and keep track of the time
@@ -302,6 +318,12 @@ while countdown > 0 and all_packets_received == False:
         is_first_packet_lost = False
         is_packet_lost = False
         ShrinkWindowSize()
+
+    elif is_out_of_order:
+        ack = last_received_packet[0]
+        expected_packet = last_received_packet[0]+1
+        last_received_packet = []
+        is_out_of_order = True
 
     # handle the other packets lost 
     elif is_packet_lost:
@@ -372,7 +394,7 @@ print("Packet resent time 7:", packets_resent_times[8]*7)
 print("Packet resent time 8:", packets_resent_times[9]*8)
 print("Resent total packets:",packets_resent_times[2]+packets_resent_times[3]*2+packets_resent_times[4]*3+packets_resent_times[5]*4+packets_resent_times[6]*5+packets_resent_times[7]*6+packets_resent_times[8]*7+packets_resent_times[9]*8)
   
-# plot TCP receiver window size over time in the x-axis
+#plot TCP receiver window size over time in the x-axis
 plt.figure(figsize=(8,6))
 plt.plot(win_size_time_buffer, win_size_buffer)  
 # x-axis label
