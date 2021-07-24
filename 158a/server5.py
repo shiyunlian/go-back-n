@@ -130,7 +130,7 @@ def HandleLostPacket():
 
 # calculate good_put every 1000 packets received
 def CalculateGoodPut():
-    global receive_packets_buffer, good_put_time_buffer, receive_packets, good_put, sent_packets_buffer, sent_packets
+    global receive_packets_buffer, good_put_time_buffer, good_put, sent_packets_buffer, sent_packets
     good_put_time_buffer.append(round(time.time() - start_time, 1))
     good_put.append(len(receive_packets_buffer)/sent_packets)
     sent_packets_buffer.append(sent_packets)

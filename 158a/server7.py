@@ -8,7 +8,7 @@ print(host, "ip address: ", ip)
 
 # create a socket
 server_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)  
-port = 1234
+port = 12340
 
 # bind host address and port together
 server_socket.bind((host, port))  
@@ -33,7 +33,7 @@ except:
 expected_packet = 0
 
 # minimun window size is 1, maximum window size is 128
-win_size = 128
+win_size = 1
 win_size_buffer = [] # an array to keep track of window size changes
 win_size_time_buffer = []  # an array to keep track of the time when window size changes 
 
@@ -192,64 +192,102 @@ win_size_time_buffer.append(0)
 win_size_buffer.append(win_size)
 print("countdown: ", countdown)
 lock = threading.Lock()
+ack_buffer=[]
+packet_lost = -1
+
+data = conn.recv(1024).decode()
+print(data)
+a_list = data.split('.')
+print(a_list)
+print(len(a_list))
+a_list= [int(i) for i in a_list]
+print(a_list)
+print(len(a_list))
 
 
-while all_packets_received == False:
+# while all_packets_received == False:
+#     ack_buffer=[]
+#     counter = 0
+#     count = 0
+#     range = win_size
+#     while counter < range and all_packets_received == False:
+#     # while all_packets_received == False:
+#         # lock.acquire()
+#         recent_packet = conn.recv(1024).decode()
 
-    counter = 0
+#         recent_packet = int(recent_packet)
+#         print("Sent packet",recent_packet)
+#         # lock.release()
 
-    while counter < win_size and all_packets_received == False:
-        # lock.acquire()
-        recent_packet = conn.recv(1024).decode()
-        if not recent_packet:
-            # if recent_packet is not received break
-            break
-        recent_packet = int(recent_packet)
-        print("sent packet",recent_packet)
+#         if recent_packet >= limit:
+#             recent_packet = recent_packet % limit
 
-        if recent_packet >= limit:
-            recent_packet = recent_packet % limit
+#         sent_packets += 1
+#         track_packet_sent_buffer.append(recent_packet)
 
-        sent_packets += 1
-        track_packet_sent_buffer.append(recent_packet)
+#         if random.random() >= 0.01:
 
-        if random.random() >= 0.01:
+#             # if recent_packet == expected_packet:
+#             print("received packet", recent_packet)
+#             if not is_packet_lost:
+#                 ack_buffer.append(recent_packet)
+#                 ExpandWindowSize()
 
-            if recent_packet == expected_packet:
-                print("received packet", expected_packet)
-                ack = str(expected_packet) + "."
-                conn.send(ack.encode())
-                print("sent ack", ack)
-                print("****************")
-                expected_packet = expected_packet + 1
-                # ExpandWindowSize()
-                # lock.release()
+#             # if there are packets lost previousy
+#             else:
+#                 ack_buffer.append(last_received_packet[0])
+
+#                 # print("sent ack", ack)
+#                 # print("****************")
+#                 expected_packet = expected_packet + 1
+#                 # ExpandWindowSize()
+#                 # lock.release()
             
-            else:
-                ack = str(last_received_packet[0])
-                conn.send(ack.encode())
-                # ShrinkWindowSize()
-                # lock.release()
+#             # else:
+#             #     ack = str(last_received_packet[0])
+#             #     conn.send(ack.encode())
+#                 # ShrinkWindowSize()
+#                 # lock.release()
 
-        else:
-            print ("Lost packet", recent_packet )
-            lost_packets_buffer.append(recent_packet)
-            lost_packets_time_buffer.append(round(time.time()-start_time,1))
- 
-            is_packet_lost = True
-            # check if expected_packet is 0 or not, if it is 0, then the last packet received is previous cycle limit - 1
-            if expected_packet > 0:
-                last_packet = expected_packet - 1
-            else:
-                last_packet = limit - 1
-            last_received_packet.append(last_packet)
+#         else:
+#             print ("Lost packet", recent_packet )
+#             lost_packets_buffer.append(recent_packet)
+#             lost_packets_time_buffer.append(round(time.time()-start_time,1))
+#             is_packet_lost = True
 
-            if expected_packet < limit:
-                expected_packet += 1
-            else:
-                expected_packet = 0
-            # ShrinkWindowSize()
-            # lock.release()
+#             # check if expected_packet is 0 or not, if it is 0, then the last packet received is previous cycle limit - 1
+#             if recent_packet == limit - 1:
+#                 HandleLostPacket()
+#                 break
+#             elif recent_packet == 0:
+#                 HandleLostPacket()
+#                 is_first_packet_lost = True
+#                 break
+#             else:
+#                 HandleLostPacket()
 
-        counter += 1
+#             if expected_packet < limit:
+#                 expected_packet += 1
+#             else:
+#                 expected_packet = 0
+            
+#             if count == 0:
+#                 ShrinkWindowSize()
+#             count += 1
+#             ack_buffer.append(packet_lost)
+#             # lock.release()
+
+#         counter += 1
+
+#     i = 0
+#     while i < len(ack_buffer):
+#         conn.send(str(ack_buffer[i]).encode())
+#         time.sleep(0.05)
+#         i += 1
+
+
+    # for i in range(len):
+    #     conn.send(str(ack_buffer[i]).encode())
+    #     time.sleep(0.05)
+    
 

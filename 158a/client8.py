@@ -1,19 +1,20 @@
-import sys
-import time
-import random
-import signal
-import threading
-import socket
-from struct import *
+import socket, time, statistics
+from statistics import mode
+#serverName='172.16.210.4'
+serverName='10.0.0.175'
+#serverName='127.0.0.1'
+#serverName = '10.0.0.81'
 
 host = socket.gethostname() 
 ip =  socket.gethostbyname(host)
-port = 12340  # socket server port number
+port = 12341 # socket server port number
 client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)  
 print(ip)
+
 # initiates the TCP connection between the client and server.
 client_socket.connect((host, port)) 
 #client_socket.connect((serverName, port)) 
+
 # send an initial message through the client’s socket and into the TCP connection
 request = 'network'
 client_socket.send(request.encode())
@@ -22,144 +23,143 @@ client_socket.send(request.encode())
 response = client_socket.recv(1024).decode()
 print('From Server:' , response)
 
-seqNum = 0
-firstInWindow = -1
-lastInWindow = -1
-lastAcked = -1
-numAcked = -1
+win_size = 2
+win_size_buffer = []
+win_size_time_buffer = []
 
-sendComplete = False
-ackedComplete = False
+# use two pointers to keep track of the window size between [send_base, next_seqnum -1], intial send_base and next_seqnum are 0
+send_base = 0
+next_seqnum = 0
 
-sendBuffer = []
-timeoutTimers = []
-windowSize = 4
-TIMEOUT=0.5
-lock = threading.Lock()
+limit = 65536
+packet_num = 100000
+countdown = int(packet_num / limit)+1
+print("Total number of packets to be sent is", packet_num, "Countdown is", countdown)
 
-## Resend packets in the window
-def ResendPackets():
-	global sendBuffer
-	global client_socket
-	global TIMEOUT
-	global timeoutTimers
-	global lastInWindow
-	global firstInWindow
-	global host
-	global port
-	global windowSize
+last_ack_sent = -1 # calculate the last ack sent based on the packet number and sequence number limit
+if packet_num > limit:
+    last_ack_sent = packet_num % limit - 1
+else:
+    last_ack_sent = packet_num - 1
 
-	iterator = firstInWindow
-	while iterator <= lastInWindow:
-		if sendBuffer[iterator % windowSize] != None:
-			packet = sendBuffer[iterator % windowSize]
-			print ("Resending packet: S" + str(iterator) + "; Timer started")
-			client_socket.send(packet.encode())
-			timeoutTimers[iterator % windowSize] = TIMEOUT
-		iterator += 1
+# shrink window size to half if packet is dropped
+def ShrinkWindowSize(): 
+    global win_size, win_size_buffer, win_size_time_buffer
+    win_size_time_buffer.append(round(time.time() - start_time, 1))
+    if win_size > 1:
+        win_size = int(win_size / 2)
+        print("Adjust window size from " + str(int(2 * win_size)) + " to " + str(win_size))
+    else:
+        print("Window size remains to be 4")
+    win_size_buffer.append(win_size)
 
-## Keep track of the timeout values which are sent to the server
-def Signalhandler(signum, _):
-	global firstInWindow
-	global lastInWindow
-	global sendBuffer
-	global lock
-	global timeoutTimers
-	global windowSize
+# expand window size twice if no packet is dropped
+def ExpandWindowSize():
+    global win_size, win_size_buffer
+    win_size_time_buffer.append(round(time.time() - start_time, 1))
+    if win_size < 128:
+        win_size = int(2 * win_size)
+        print("Adjust window size from " + str(int(win_size/2)) + " to " + str(win_size))
+    else:
+        print("Window size remains to be 128")
+    win_size_buffer.append(win_size)
 
+# start the time
+start_time = time.time()
+is_packet_lost = False
+is_all_packets_sent = False
 
-	for i, eachtimer in enumerate(timeoutTimers):
-		timeoutTimers[i] = eachtimer - 1
-    
-	if len(timeoutTimers) > (firstInWindow % windowSize) and timeoutTimers[firstInWindow % windowSize] == 0:
-		print ("Timeout, sequence number =", firstInWindow)
-		lock.acquire()
-		ResendPackets()
-		lock.release()
+while countdown > 0:
 
+    packet_list=''
+    ack_list=''
 
-## Look for acknowledgements from the server
-def LookforACKs():
-	global firstInWindow
-	global sendBuffer
-	global windowSize
-	global client_socket
-	global numAcked
-	global seqNum
-	global ackedComplete
-	global sendComplete
-	global lastAcked
-	global lastInWindow
+    # create a packet list in window size and send to server
+    while next_seqnum < send_base + win_size:
 
-	# Protocol = Go back N
+        if next_seqnum == last_ack_sent and countdown == 1:
+            packet_list = packet_list + str(next_seqnum) + '.'
+            print('Send', next_seqnum)
+            break
 
-	while not ackedComplete:
-		packet=client_socket.recv(1024).decode()
-        ack = unpack('IHH', packet)
-        ackNum = ack[0]
-		
-        if ackNum == seqNum:
-            print ("Received ACK: ", ackNum)
-            lock.acquire()
-            iterator = firstInWindow
-            while iterator <= lastInWindow:
-                sendBuffer[iterator % windowSize] = None
-                timeoutTimers[iterator % windowSize] = 0
-                lastAcked = lastAcked + 1
-                firstInWindow = firstInWindow + 1
-            lock.release()
-        elif ackNum == lastAcked + 1:
-            print ("Received ACK: ", ackNum)
-            lock.acquire()
-            sendBuffer[ackNum % windowSize] = None
-            timeoutTimers[ackNum % windowSize] = 0
-            lastAcked = lastAcked + 1
-            firstInWindow = firstInWindow + 1
-            lock.release()
-
-        # If all packets sent and all acknowledgements received
-        if sendComplete and lastAcked >= lastInWindow:
-            ackedComplete = True
+        # if the packet num to be sent is greater than limit, break the loop
+        if next_seqnum >= limit:
+            break
         else:
-            print ("Ack " + str(ackNum) + " lost (Info for simulation).")
+            packet_list = packet_list + str(next_seqnum) + '.'
+            print('Send', next_seqnum)
 
+        next_seqnum += 1
+    
+    # remove the last character '.'
+    packet_list = packet_list[:-1]
 
+    # send the packet list to server
+    client_socket.send(packet_list.encode())
 
-# Start thread looking for acknowledgements
-threadForAck = threading.Thread(target=LookforACKs, args=())
-threadForAck.start()
+    # receive the ack list from client
+    ack_list = client_socket.recv(1024).decode()
 
-signal.signal(signal.SIGALRM, Signalhandler)
-signal.setitimer(signal.ITIMER_REAL, 0.01, 0.01)
+    # if ack list has more than 1 acks, ack list needs to split
+    if len(ack_list) > 1 :
+        ack_list = ack_list.split('.')
 
-firstInWindow = 0
+    # convert string acks into integer acks
+    ack_list=[int(i) for i in ack_list]
 
-# Send packets
-while not sendComplete:
-	toSend = lastInWindow + 1
-	data = GetMessage()
-	header = int('0101010101010101', 2)
-	cs = pack('IH' + str(len(data)) + 's', seqNum, header, data)
-	checksum = CalculateChecksum(cs)
+    # check each ack to see if there is packet dropped
+    count = 0 # count if there is packet dropped
+    for i in range(len(ack_list)):
 
-	packet = pack('IHH' + str(len(data)) + 's', seqNum, checksum, header, data)
-	if toSend < windowSize:
-		sendBuffer.append(packet)
-		timeoutTimers.append(TIMEOUT)
-	else:
-		sendBuffer[toSend % windowSize] = packet
-		timeoutTimers[toSend % windowSize] = TIMEOUT
+        # check if all the packets have sent and received successfully
+        if countdown == 1 and ack_list[i] == send_base and send_base == last_ack_sent and is_packet_lost == False:
+            countdown -= 1
+            is_all_packets_sent = True
+            print("All the packets have sent.")
+            break
 
-	print "Sending S" + str(seqNum) + "; Timer started"
-	if BIT_ERROR_PROBABILITY > random.random():
-		error_data = "0123456789012345678012345678012345678012345678012345678"
-		packet = pack('IHH' + str(len(error_data)) + 's', seqNum, checksum, header, data)
-	clientSocket.sendto(packet, (host, port))
+        # packet received and expand window size
+        if ack_list[i] == send_base:
+            print('ack', ack_list[i])
 
-	lastInWindow = lastInWindow + 1
-	seqNum = seqNum + 1
+            # if ack is 65535, send_base will start from 0, countdown decrement by one
+            if ack_list[i] == limit - 1:
+                send_base = 0
+                countdown -= 1
 
-while not ackedComplete:
-	pass
-	
-	
+            # if ack is 0~65534, send_base increment by one
+            else:
+                send_base = send_base + 1
+            ExpandWindowSize()
+
+        # packet dropped and shrink window size
+        # if ack_list[i] == send_base - 1:
+        else:
+            is_packet_lost = True
+            print("ack", ack_list[i])
+            if count == 0:
+                ShrinkWindowSize()
+                count += 1
+
+    if is_all_packets_sent:
+        break
+
+    # find the correct next_seqnum if packet dropped
+    if is_packet_lost:
+        # ack_list = ack_list.remove(-1)
+        #next_seqnum = ack_list[len(ack_list) - 1]
+        next_seqnum = mode(ack_list) + 1
+        is_packet_lost = False
+    
+    if next_seqnum == limit:
+        next_seqnum = 0
+        send_base = 0
+    print("next seqnum", next_seqnum)
+    
+
+# end time and calculate elapsed_time
+end_time = time.time()
+print("Elapsed time: ", round(end_time - start_time, 1))
+
+# close the connection
+client_socket.close()
