@@ -1,5 +1,5 @@
 import socket
-PORT = 1234
+PORT = 12341
 serverSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 serverSocket.bind(('',PORT))
 
@@ -12,11 +12,12 @@ while connection_num > 0:
         serverSocket.listen(connection_num)
         print('Server is listening...')
         conn, address = serverSocket.accept()
-        print('Received connection', count)
+        print('Connected to: ' + address[0] + ':' + str(address[1]))
         response = 'Thank you' 
         conn.send(response.encode())
         print('Sent thank you message', count)
         count += 1
+        print('*******************************')
     except:
         print('Server is not listening...')
 

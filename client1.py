@@ -1,11 +1,20 @@
 import socket
-s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-s.connect((socket.gethostname(),5000))
-complete_info=''
-while True:
-    msg=s.recv(1024)
-    if len(msg)<=0:
-        break
-    complete_info+=msg.decode('utf-8')
 
-print(complete_info)
+ClientSocket = socket.socket()
+host = '127.0.0.1'
+port = 1233
+
+print('Waiting for connection')
+try:
+    ClientSocket.connect((host, port))
+except socket.error as e:
+    print(str(e))
+
+Response = ClientSocket.recv(1024)
+while True:
+    Input = input('Say Something: ')
+    ClientSocket.send(str.encode(Input))
+    Response = ClientSocket.recv(1024)
+    print(Response.decode('utf-8'))
+
+ClientSocket.close()
