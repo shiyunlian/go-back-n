@@ -8,7 +8,7 @@ print(host, "ip address: ", ip)
 
 # create a socket
 server_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)  
-port = 12341
+port = 12340
 
 # bind host address and port together
 server_socket.bind((host, port))  
@@ -35,7 +35,7 @@ win_size_time_buffer = []  # an array to keep track of the time when window size
 
 sent_complete = False   # indicate if every 65535 packets are sent successfully
 limit = 65536   # sequence number limit
-packet_num = 100000     # total packets to be sent
+packet_num = 10000000     # total packets to be sent
 expected_packet = 0 # expected packet to be received
 
 # indicate if there is packet dropped
@@ -116,11 +116,13 @@ def HandleLostPacket():
         last_packet = limit - 1
     last_received_packet.append(last_packet)
 
-    if expected_packet < limit:
-        expected_packet += 1
-    else:
-        expected_packet = 0
+    # if expected_packet < limit:
+    #     expected_packet += 1
+    # else:
+    #     expected_packet = 0
     
+    print("last received packet", last_received_packet[0])
+
 # calculate good_put every 1000 packets received
 def CalculateGoodPut():
     global receive_packets_buffer, good_put_time_buffer, receive_packets, good_put, sent_packets_buffer, sent_packets
@@ -177,7 +179,7 @@ print("countdown: ", countdown)
 while not all_packets_received:
 
     count = 0
-    last_received_packet = []
+    # last_received_packet = []
     packet_list = ''
     ack_list = ''
 
@@ -195,6 +197,7 @@ while not all_packets_received:
     for i in range(len(packet_list)):
 
         track_packet_sent_buffer.append(packet_list[i])
+        expected_packet = packet_list[i]
 
         # if random.random() >= 0.01, append the packet into receive_packets_buffer and tracket_packet_num_buffer
         if random.random() >= 0.01:
@@ -238,11 +241,11 @@ while not all_packets_received:
                 # if received packet reaches limit, set the next expected_packet to 0, expand window size if no packet is lost previously
                 if packet_list[i] == limit - 1:
                     sent_complete = True
-                    expected_packet = 0
+                    # expected_packet = 0
                     break
                 else:
                     sent_complete = False
-                    expected_packet += 1               
+                    # expected_packet += 1               
 
         # if a packet is lost, append the lost packet to lost_packets_buffer and keep track of the time
         else:
@@ -304,8 +307,8 @@ while not all_packets_received:
         sent_complete = False
         receive_buffer=[]
 
-    if expected_packet == limit:
-        expected_packet = 0
+    # if expected_packet == limit:
+    #     expected_packet = 0
     
     # send ack_list to the client
     ack_list = ack_list[:-1]
@@ -321,10 +324,10 @@ end_time = time.time()
 # close the connection
 conn.close()
 
-print(host, "ip address: ", ip)
 print("Elapsed time: ", round((end_time - start_time), 1), "seconds")
 print("Elapsed time: ", round((end_time - start_time)/60, 1), "minutes")
 print("Total packets required:", packet_num)
+print(host, "ip address: ", ip)
 print("Sent total packets:", CalculateSentPackets())
 print("Received total packets:", len(track_packet_num_buffer))
 print("Lost total packets:", len(lost_packets_buffer))
@@ -360,7 +363,7 @@ plt.title('TCP sequence number received over time')
 
 # plot TCP sequence number received over time in the x-axis
 plt.figure(figsize=(12,6))
-plt.scatter(track_packet_num_time_buffer,track_packet_num_buffer)
+plt.scatter(track_packet_num_time_buffer,track_packet_num_buffer, c='blue')
 plt.xlabel('Time in seconds')
 plt.ylabel('TCP sequence number')
 plt.title('TCP sequence number received over time')
@@ -374,7 +377,8 @@ plt.title('TCP sequence number dropped over time')
 
 # plot TCP sequence number dropped over time in the x-axis
 plt.figure(figsize=(12,6))
-plt.scatter(lost_packets_time_buffer, lost_packets_buffer, marker='*')
+plt.scatter(lost_packets_time_buffer, lost_packets_buffer, c='blue')
+# plt.scatter(lost_packets_time_buffer, lost_packets_buffer, marker='*')
 plt.xlabel('Time in seconds')
 plt.ylabel('TCP sequence number')
 plt.title('TCP sequence number dropped over time')

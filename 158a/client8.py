@@ -1,13 +1,11 @@
 import socket, time, statistics
 from statistics import mode
-#serverName='172.16.210.4'
+
 serverName='10.0.0.175'
-#serverName='127.0.0.1'
-#serverName = '10.0.0.81'
 
 host = socket.gethostname() 
 ip =  socket.gethostbyname(host)
-port = 12341 # socket server port number
+port = 12340 # socket server port number
 client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)  
 print(host, "ip address: ", ip)
 
@@ -32,7 +30,7 @@ send_base = 0
 next_seqnum = 0
 
 limit = 65536
-packet_num = 1000000
+packet_num = 10000000
 countdown = int(packet_num / limit)+1
 print("Total number of packets to be sent is", packet_num, "Countdown is", countdown)
 
@@ -79,7 +77,6 @@ while countdown > 0:
 
         if next_seqnum == last_ack_sent and countdown == 1:
             packet_list = packet_list + str(next_seqnum) + '.'
-            print('Send', next_seqnum)
             break
 
         # if the packet num to be sent is greater than limit, break the loop
@@ -87,8 +84,8 @@ while countdown > 0:
             break
         else:
             packet_list = packet_list + str(next_seqnum) + '.'
-            print('Send', next_seqnum)
 
+        print('Send next seq',next_seqnum)
         next_seqnum += 1
     
     # remove the last character '.'
@@ -113,7 +110,7 @@ while countdown > 0:
     for i in range(len(ack_list)):
 
         # check if all the packets have sent and received successfully
-        if countdown == 1 and ack_list[i] == send_base and send_base == last_ack_sent and is_packet_lost == False:
+        if countdown == 1 and ack_list[i] == send_base and send_base == last_ack_sent:
             countdown -= 1
             is_all_packets_sent = True
             print('ack', ack_list[i], "\nAll the packets have sent.")
@@ -152,9 +149,13 @@ while countdown > 0:
             next_seqnum = mode(ack_list) + 1
         is_packet_lost = False
     
+    # if packet_num < limit and next_seqnum == packet_num - 1:
+        
+
     if next_seqnum == limit:
         next_seqnum = 0
         send_base = 0
+    
     print("next seqnum", next_seqnum)
     
 # end time and calculate elapsed_time
