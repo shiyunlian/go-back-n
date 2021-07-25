@@ -1,9 +1,4 @@
-import socket, time
-from timer import Timer
-import threading
-import asyncio
-
-import statistics
+import socket, time, statistics
 from statistics import mode
 #serverName='172.16.210.4'
 serverName='10.0.0.175'
@@ -12,12 +7,14 @@ serverName='10.0.0.175'
 
 host = socket.gethostname() 
 ip =  socket.gethostbyname(host)
-port = 12340 # socket server port number
+port = 12341 # socket server port number
 client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)  
 print(ip)
+
 # initiates the TCP connection between the client and server.
 client_socket.connect((host, port)) 
 #client_socket.connect((serverName, port)) 
+
 # send an initial message through the client’s socket and into the TCP connection
 request = 'network'
 client_socket.send(request.encode())
@@ -26,16 +23,18 @@ client_socket.send(request.encode())
 response = client_socket.recv(1024).decode()
 print('From Server:' , response)
 
-
-win_size = 128
+win_size = 1
 win_size_buffer = []
 win_size_time_buffer = []
 
+# use two pointers to keep track of the window size between [send_base, next_seqnum -1], intial send_base and next_seqnum are 0
+send_base = 0
+next_seqnum = 0
+
 limit = 65536
-packet_num = 1000
-ack = -1
+packet_num = 100000
 countdown = int(packet_num / limit)+1
-print("Total number of packets to be sent is ", packet_num)
+print("Total number of packets to be sent is", packet_num, "Countdown is", countdown)
 
 last_ack_sent = -1 # calculate the last ack sent based on the packet number and sequence number limit
 if packet_num > limit:
@@ -43,11 +42,6 @@ if packet_num > limit:
 else:
     last_ack_sent = packet_num - 1
 
-send_base = 0
-next_seqnum = 0
-ack_buffer = []
-seqnum_buffer = []
-seqnum_time_buffer =[]
 # shrink window size to half if packet is dropped
 def ShrinkWindowSize(): 
     global win_size, win_size_buffer, win_size_time_buffer
@@ -70,180 +64,102 @@ def ExpandWindowSize():
         print("Window size remains to be 128")
     win_size_buffer.append(win_size)
 
-def StartTimer():
-    start=time.time
-    
 # start the time
 start_time = time.time()
-expected_ack = 0
-lock = threading.Lock()
-ack_buffer = []
-packet_buffer=[]
 is_packet_lost = False
+is_all_packets_sent = False
 
-packet_list=''
-while next_seqnum < send_base + win_size:
-    packet_list = packet_list+str(next_seqnum)+'.'
-    # if next_seqnum == send_base + win_size - 1:
-    #     packet_list = packet_list+str(next_seqnum)
-    # else:
-    #     packet_list = packet_list+str(next_seqnum)+'.'
-    next_seqnum += 1
+while countdown > 0:
+
+    packet_list=''
+    ack_list=''
+
+    # create a packet list in window size and send to server
+    while next_seqnum < send_base + win_size:
+
+        if next_seqnum == last_ack_sent and countdown == 1:
+            packet_list = packet_list + str(next_seqnum) + '.'
+            print('Send', next_seqnum)
+            break
+
+        # if the packet num to be sent is greater than limit, break the loop
+        if next_seqnum >= limit:
+            break
+        else:
+            packet_list = packet_list + str(next_seqnum) + '.'
+            print('Send', next_seqnum)
+
+        next_seqnum += 1
     
-packet_list = packet_list[:-1]
-client_socket.send(packet_list.encode())
-print(packet_list)
-# while countdown > 0:
-#     counter = 0
-#     recent_ack = -1
-#     # send all the packets in the window
-#     # while next_seqnum < send_base + win_size:
-#     #     packet_buffer.append(next_seqnum)
-#     #     next_seqnum += 1
+    # remove the last character '.'
+    packet_list = packet_list[:-1]
+
+    # send the packet list to server
+    client_socket.send(packet_list.encode())
+
+    # receive the ack list from client
+    ack_list = client_socket.recv(1024).decode()
+
+    # if ack list has more than 1 acks, ack list needs to split
+    if len(ack_list) > 1 :
+        ack_list = ack_list.split('.')
+
+    # convert string acks into integer acks
+    ack_list=[int(i) for i in ack_list]
+
+    # check each ack to see if there is packet dropped
+    count = 0 # count if there is packet dropped
+
+    for i in range(len(ack_list)):
+
+        # check if all the packets have sent and received successfully
+        if countdown == 1 and ack_list[i] == send_base and send_base == last_ack_sent and is_packet_lost == False:
+            countdown -= 1
+            is_all_packets_sent = True
+            print('ack', ack_list[i], "\nAll the packets have sent.")
+            break
+
+        # packet received and expand window size
+        if ack_list[i] == send_base:
+            print('ack', ack_list[i])
+
+            # if ack is 65535, send_base will start from 0, countdown decrement by one
+            if ack_list[i] == limit - 1:
+                send_base = 0
+                countdown -= 1
+
+            # if ack is 0~65534, send_base increment by one
+            else:
+                send_base = send_base + 1
+            ExpandWindowSize()
+
+        # packet dropped and shrink window size
+        # if ack_list[i] == send_base - 1:
+        else:
+            is_packet_lost = True
+            print("ack", ack_list[i])
+            if count == 0:
+                ShrinkWindowSize()
+                count += 1
+
+    if is_all_packets_sent:
+        break
+
+    # find the correct next_seqnum if packet dropped
+    if is_packet_lost:
+        # ack_list = ack_list.remove(-1)
+        #next_seqnum = ack_list[len(ack_list) - 1]
+        next_seqnum = mode(ack_list) + 1
+        is_packet_lost = False
     
-#     # for i in range(len(packet_buffer)):
-#     #     client_socket.send(str(packet_buffer[i]).encode())
-#     count = 0
+    if next_seqnum == limit:
+        next_seqnum = 0
+        send_base = 0
+    print("next seqnum", next_seqnum)
     
-#     if is_packet_lost:
-#         next_seqnum = int(mode(ack_buffer) + 1)
-#         print(mode(ack_buffer))
-#         print(ack_buffer)
-#         is_packet_lost = False
-#         print("next seqnum", next_seqnum)
+# end time and calculate elapsed_time
+end_time = time.time()
+print("Elapsed time: ", round(end_time - start_time, 1))
 
-#     ack_buffer=[]
-
-#     # while seq_num <= packet_num:
-# #     if seq_num < limit:
-# #         packet_list = packet_list+str(seq_num)
-# #     else:
-# #         packet_list = packet_list+str(seq_num % limit)
-# #     seq_num += 1
-
-#     while next_seqnum < send_base + win_size:
-#         packet_list = packet_list+str(next_seqnum)+'.'
-#         #next_seqnum = str(next_seqnum)
-#         # client_socket.send((str(next_seqnum)+'/').encode())
-#         # print("send packet", next_seqnum)
-#         #time.sleep(0.05)
-#         next_seqnum += 1
-    
-
-#     client_socket.send(packet_list.encode())
-#     # range = win_size
-    
-#     # counter = 0
-#     # while counter < range:
-#     #     ack = client_socket.recv(1024).decode()
-#     #     ack = int(ack)
-#     #     ack_buffer.append(ack)
-#     #     if ack == send_base:
-#     #         print("ack",ack)
-#     #         send_base = send_base + 1
-#     #         ExpandWindowSize()
-#     #     elif ack == send_base - 1:
-#     #         print("ack",ack)
-#     #         if count == 0:
-#     #             ShrinkWindowSize()
-#     #             count += 1
-#     #     else:
-#     #         is_packet_lost = True    
-#     #     counter += 1
-    
-    
-        
-
-#     # print(ack_buffer)
-#     # ack_buffer.append(ack)
-#     # print(ack_buffer)
-#     # t = Timer()
-#     # ack_range = win_size
-#     # time.sleep(0.01)
-#     # while counter < ack_range:
-#     #     time.sleep(0.01)
-#     #     ack = client_socket.recv(1024).decode()
-#     #     ack_buffer.append(ack)
-#     #     print(ack_buffer)
-#         # ack = int(ack)
-#         # if ack == expected_ack:
-#         #     send_base = send_base + 1
-#         #     print("received ack", ack)
-#         #     recent_ack = expected_ack
-#         #     expected_ack = expected_ack + 1
-#         #     # ExpandWindowSize()
-#         # else:
-#         #     # t.start()
-#         #     print("not received ack", ack)
-        
-
-    
-
-#     # t = Timer()
-#     # ack_range = win_size
-#     # while counter < ack_range:
-#     #     lock.acquire()
-#     #     ack = client_socket.recv(1024).decode()
-#     #     if ack == expected_ack:
-#     #         send_base = send_base + 1
-#     #         print("received ack", ack)
-#     #         recent_ack = expected_ack
-#     #         expected_ack = expected_ack + 1
-#     #         # ExpandWindowSize()
-#     #     else:
-#     #         t.start()
-#     #         print("not received ack", ack)
-#     #     lock.release()
-#     #     counter = counter + 1
-
-#         # 0123
-#         # if ack is expected, increment send_base, expected_ack
-        
-            
-#             # if send_base == next_seqnum:
-#             #     t.stop()
-#             # else:
-#             #     t.start()
-
-        
-        
-#         # else:
-#         #     ShrinkWindowSize()
-
-#         # if t.timeout():
-#         #     t.start()
-#         #     while send_base != next_seqnum - 1:
-#         #         send_base = str(send_base)
-#         #         client_socket.send(send_base.encode())
-#         #         send_base = int(send_base) + 1
-
-
-#         # # if ack is the last ack to be received, all the packets have sent successfully
-#         # if countdown == 1 and ack == last_ack_sent:
-#         #     countdown -= 1
-#         #     print("All the packets have sent.")
-#         #     break
-        
-#         # # if the first packet is lost in the first countdown, send_base is 0
-#         # elif ack == -1:
-#         #     send_base = 0
-
-#         # # check if the ack reaches limit, set the send_base appropriately, and expand window size
-#         # elif ack == limit - 1:
-#         #     countdown -= 1 
-#         #     send_base = 0
-#         #     print("Countdown", countdown)
-#         # else:
-#         #     send_base = ack + 1
-#         #     print ('Received ACK', ack, "Expected Ack",expected_ack) 
-
-#         # # if all the packets sent are acknowledged, expand the window, otherwise, shrink the window
-#         # if ack == int(expected_ack):
-#         #     ExpandWindowSize()
-#         # else:
-#         #     ShrinkWindowSize()
-    
-
-
-
-    
+# close the connection
+client_socket.close()

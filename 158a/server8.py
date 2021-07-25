@@ -1,5 +1,6 @@
 import socket, random, time
 import matplotlib.pyplot as plt
+
 # get the hostname and ip
 host = socket.gethostname()
 ip = socket.gethostbyname(host)
@@ -28,26 +29,20 @@ try:
 except:
     print("Connection failed")
 
-# expected packet to be received
-expected_packet = 0
-
-# minimun window size is 1, maximum window size is 128
-win_size = 2
+win_size = 1    # minimun window size is 1, maximum window size is 128
 win_size_buffer = [] # an array to keep track of window size changes
 win_size_time_buffer = []  # an array to keep track of the time when window size changes 
 
-# indicate if every 65535 packets are sent successfully
-sent_complete = False
-limit = 65536
+sent_complete = False   # indicate if every 65535 packets are sent successfully
+limit = 65536   # sequence number limit
+packet_num = 1000000     # total packets to be sent
+expected_packet = 0 # expected packet to be received
 
-# indicate if there is packet dropped or out of order
+# indicate if there is packet dropped
 is_packet_lost = False
-is_first_packet_lost = False
+is_first_packet_lost = False 
 is_last_packet_received = False # last packet received and no previous packet is lost
-last_packet = -1 
-
-# total packets to be sent
-packet_num = 100000
+last_packet = -1 # the last packet before a packet is lost
 
 receive_packets = 0     # a counter to keep track of number of packets receive 
 receive_packets_buffer =[] # an array to store packets received in order
@@ -55,7 +50,7 @@ receive_packets_buffer =[] # an array to store packets received in order
 sent_packets = 0    # a counter to keep track of number of packets sent
 sent_packets_buffer =[] # an array to store # of sent packets every 1000 packets received
 
-countdown = int(packet_num / limit) +1# a counter to keep track of every 65535 packets out of 10,000,000 packets
+countdown = int(packet_num / limit) + 1 # a counter to keep track of every 65535 packets out of 10,000,000 packets
 
 avg_good_put = 0 
 good_put = [] # an array to store good_put 
@@ -82,7 +77,8 @@ track_packet_sent_times_buffer = []    # an array to keep track of each packet s
 track_packet_sent_buffer = []   # an array to keep track of the number of each packets sent
 buffer =[]  # a helper array
 packets_resent_times = []    # an array to sum up how many times each packet sent for every countdown cycle
-ack_list = ''
+receive_buffer=[]
+
 # initialize packets_resent_times
 for i in range(0,10):
     packets_resent_times.append(0)
@@ -111,7 +107,7 @@ def ExpandWindowSize():
 
 # handle lost packet
 def HandleLostPacket():
-    global ack_list, last_packet, last_received_packet, expected_packet, is_packet_lost
+    global last_packet, last_received_packet, expected_packet, is_packet_lost
     is_packet_lost = True
     # check if expected_packet is 0 or not, if it is 0, then the last packet received is previous cycle limit - 1
     if expected_packet > 0:
@@ -152,14 +148,13 @@ def CalculateSentPackets():
 
 # keep track of how many times of each packets to be sent every countdown cycle
 def TrackSentPackets():
-    global track_packet_sent_buffer, track_packet_sent_times_buffer, buffer
+    global track_packet_sent_buffer, track_packet_sent_times_buffer, buffer, limit
     track_packet_sent_times_buffer = []
     buffer = []
-    i = 0
+
     if countdown != 1:
-        while i < limit:
+        for i in range(limit):
             track_packet_sent_times_buffer.append(track_packet_sent_buffer.count(i))
-            i += 1
 
     if countdown == 1:
         for i in range(len(track_packet_sent_buffer)):
@@ -178,7 +173,6 @@ start_time = time.time()
 win_size_time_buffer.append(0)
 win_size_buffer.append(win_size)
 print("countdown: ", countdown)
-receive_buffer=[]
 
 while not all_packets_received:
 
@@ -202,14 +196,14 @@ while not all_packets_received:
 
         track_packet_sent_buffer.append(packet_list[i])
 
-        # if random.random() >= 0.01, increment receive_packets, append the packet into receive_packets_buffer and tracket_packet_num_buffer
+        # if random.random() >= 0.01, append the packet into receive_packets_buffer and tracket_packet_num_buffer
         if random.random() >= 0.01:
 
             # calculate good_put every 1000 packets received
             if len(receive_packets_buffer) == 1000:
                 CalculateGoodPut()
 
-            # check if it is the last packet and the previous packets received are lost or not
+            # check if it is the last packet and any previous packets received are lost or not
             if countdown == 1 and packet_list[i] == last_ack_sent:
                 if not is_packet_lost:
                     print("Received the last packet", packet_list[i], "\nAll the packets have been received")
@@ -220,13 +214,13 @@ while not all_packets_received:
                     track_packet_num_time_buffer.append(round(time.time()-start_time,1))
                     ack_list = ack_list + str(packet_list[i]) + '.'
                 else:
-                    print("Received packet ", packet_list[i], " Expected packet ", expected_packet)
+                    print("Received packet", packet_list[i], "Expected packet", expected_packet)
                     is_last_packet_received = True 
                     ack_list = ack_list + str(last_received_packet[0]) + '.' 
                 break
 
             else:
-                print("Received packet ", packet_list[i], " Expected packet ", expected_packet)
+                print("Received packet", packet_list[i], "Expected packet", expected_packet)
                 
                 if packet_list[i] not in receive_buffer:
                     receive_buffer.append(packet_list[i])
@@ -275,7 +269,6 @@ while not all_packets_received:
                     ack_list = ack_list + '-1.' 
                 else:
                     ack_list = ack_list + str(last_received_packet[0]) + '.' 
-                #break
             else:
                 HandleLostPacket()
                 ack_list = ack_list + str(last_received_packet[0]) + '.' 
@@ -328,7 +321,9 @@ end_time = time.time()
 # close the connection
 conn.close()
 
-print("Elapsed time: ", round((end_time - start_time), 1))
+print(host, "ip address: ", ip)
+print("Elapsed time: ", round((end_time - start_time), 1), "seconds")
+print("Elapsed time: ", round((end_time - start_time)/60, 1), "minutes")
 print("Total packets required:", packet_num)
 print("Sent total packets:", CalculateSentPackets())
 print("Received total packets:", len(track_packet_num_buffer))
@@ -347,7 +342,7 @@ print("Packet resent time 8:", packets_resent_times[9]*8)
 print("Resent total packets:",packets_resent_times[2]+packets_resent_times[3]*2+packets_resent_times[4]*3+packets_resent_times[5]*4+packets_resent_times[6]*5+packets_resent_times[7]*6+packets_resent_times[8]*7+packets_resent_times[9]*8)
   
 # plot TCP receiver window size over time in the x-axis
-plt.figure(figsize=(8,6))
+plt.figure(figsize=(12,6))
 plt.plot(win_size_time_buffer, win_size_buffer)  
 # x-axis label
 plt.xlabel('Time in seconds')
@@ -357,21 +352,28 @@ plt.ylabel('Window size')
 plt.title('Window size over time')
 
 # plot TCP sequence number received over time in the x-axis
-plt.figure(figsize=(8,6))
+plt.figure(figsize=(12,6))
 plt.plot(track_packet_num_time_buffer,track_packet_num_buffer)
 plt.xlabel('Time in seconds')
 plt.ylabel('TCP sequence number')
 plt.title('TCP sequence number received over time')
 
+# plot TCP sequence number received over time in the x-axis
+plt.figure(figsize=(12,6))
+plt.scatter(track_packet_num_time_buffer,track_packet_num_buffer)
+plt.xlabel('Time in seconds')
+plt.ylabel('TCP sequence number')
+plt.title('TCP sequence number received over time')
+
 # plot TCP sequence number dropped over time in the x-axis
-plt.figure(figsize=(8,6))
+plt.figure(figsize=(12,6))
 plt.plot(lost_packets_time_buffer, lost_packets_buffer)  
 plt.xlabel('Time in seconds')
 plt.ylabel('TCP sequence number')
 plt.title('TCP sequence number dropped over time')
 
 # plot TCP sequence number dropped over time in the x-axis
-plt.figure(figsize=(8,6))
+plt.figure(figsize=(12,6))
 plt.scatter(lost_packets_time_buffer, lost_packets_buffer, marker='*')
 plt.xlabel('Time in seconds')
 plt.ylabel('TCP sequence number')

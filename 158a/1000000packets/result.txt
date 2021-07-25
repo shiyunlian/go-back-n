@@ -1,0 +1,18 @@
+Shiyuns-MacBook-Air.local ip address:  127.0.0.1
+Elapsed time:  3631.3 seconds
+Elapsed time:  60.5 minutes
+Total packets required: 1000000
+Sent total packets: 1578520
+Received total packets: 1000000
+Lost total packets: 15593
+Resent total packets:  578520
+Average good-put:  0.65
+Packet resent time 1: 333691
+Packet resent time 2: 177908
+Packet resent time 3: 53556
+Packet resent time 4: 10880
+Packet resent time 5: 2335
+Packet resent time 6: 150
+Packet resent time 7: 0
+Packet resent time 8: 0
+Resent total packets: 578520

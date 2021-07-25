@@ -9,7 +9,7 @@ host = socket.gethostname()
 ip =  socket.gethostbyname(host)
 port = 12341 # socket server port number
 client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)  
-print(ip)
+print(host, "ip address: ", ip)
 
 # initiates the TCP connection between the client and server.
 client_socket.connect((host, port)) 
@@ -23,7 +23,7 @@ client_socket.send(request.encode())
 response = client_socket.recv(1024).decode()
 print('From Server:' , response)
 
-win_size = 2
+win_size = 1
 win_size_buffer = []
 win_size_time_buffer = []
 
@@ -32,7 +32,7 @@ send_base = 0
 next_seqnum = 0
 
 limit = 65536
-packet_num = 100000
+packet_num = 1000000
 countdown = int(packet_num / limit)+1
 print("Total number of packets to be sent is", packet_num, "Countdown is", countdown)
 
@@ -109,13 +109,14 @@ while countdown > 0:
 
     # check each ack to see if there is packet dropped
     count = 0 # count if there is packet dropped
+
     for i in range(len(ack_list)):
 
         # check if all the packets have sent and received successfully
         if countdown == 1 and ack_list[i] == send_base and send_base == last_ack_sent and is_packet_lost == False:
             countdown -= 1
             is_all_packets_sent = True
-            print("All the packets have sent.")
+            print('ack', ack_list[i], "\nAll the packets have sent.")
             break
 
         # packet received and expand window size
@@ -133,7 +134,6 @@ while countdown > 0:
             ExpandWindowSize()
 
         # packet dropped and shrink window size
-        # if ack_list[i] == send_base - 1:
         else:
             is_packet_lost = True
             print("ack", ack_list[i])
@@ -146,9 +146,10 @@ while countdown > 0:
 
     # find the correct next_seqnum if packet dropped
     if is_packet_lost:
-        # ack_list = ack_list.remove(-1)
-        #next_seqnum = ack_list[len(ack_list) - 1]
-        next_seqnum = mode(ack_list) + 1
+        if ack_list[0] == -1:
+            next_seqnum = 0
+        else:
+            next_seqnum = mode(ack_list) + 1
         is_packet_lost = False
     
     if next_seqnum == limit:
@@ -156,10 +157,10 @@ while countdown > 0:
         send_base = 0
     print("next seqnum", next_seqnum)
     
-
 # end time and calculate elapsed_time
 end_time = time.time()
 print("Elapsed time: ", round(end_time - start_time, 1))
+print(host, "ip address: ", ip)
 
 # close the connection
 client_socket.close()
