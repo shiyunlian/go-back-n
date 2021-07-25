@@ -1,0 +1,41 @@
+DESKTOP-7UFRKKV ip address:  10.0.0.175
+Total packets required: 100000
+Sent total packets: 159797
+Received total packets: 100000
+Lost total packets: 1596
+Resent total packets:  59797
+Average good-put:  0.64
+Packet resent time 1: 33279
+Packet resent time 2: 20434
+Packet resent time 3: 4929
+Packet resent time 4: 1100
+Packet resent time 5: 55
+Packet resent time 6: 0
+Packet resent time 7: 0
+Packet resent time 8: 0
+Resent total packets: 59797
+PS C:\Users\Lian\CS158a>
+
+
+DESKTOP-7UFRKKV ip address:  10.0.0.175
+Elapsed time:  690.0 seconds
+Elapsed time:  11.5 minutes
+Total packets required: 100000
+Sent total packets: 159797
+Received total packets: 100000
+Lost total packets: 1596
+Resent total packets:  59797
+Average good-put:  0.64
+Packet resent time 1: 33279
+Packet resent time 2: 20434
+Packet resent time 3: 4929
+Packet resent time 4: 1100
+Packet resent time 5: 55
+Packet resent time 6: 0
+Packet resent time 7: 0
+Packet resent time 8: 0
+Resent total packets: 59797
+PS C:\Users\Lian\CS158a>
+
+
+

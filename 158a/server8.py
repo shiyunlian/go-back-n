@@ -35,7 +35,7 @@ win_size_time_buffer = []  # an array to keep track of the time when window size
 
 sent_complete = False   # indicate if every 65535 packets are sent successfully
 limit = 65536   # sequence number limit
-packet_num = 1000000     # total packets to be sent
+packet_num = 100000     # total packets to be sent
 expected_packet = 0 # expected packet to be received
 
 # indicate if there is packet dropped

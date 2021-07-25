@@ -1,0 +1,3 @@
+PS C:\Users\Lian\CS158a> & C:/Users/Lian/AppData/Local/Programs/Python/Python39/python.exe c:/Users/Lian/CS158a/158a/server8.py
+DESKTOP-7UFRKKV ip address:  10.0.0.175
+
