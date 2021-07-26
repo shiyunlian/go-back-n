@@ -343,24 +343,10 @@ plt.title('Window size over time')
 
 # plot TCP sequence number received over time in the x-axis
 plt.figure(figsize=(12,6))
-plt.plot(track_packet_num_time_buffer,track_packet_num_buffer)
-plt.xlabel('Time in seconds')
-plt.ylabel('TCP sequence number')
-plt.title('TCP sequence number received over time')
-
-# plot TCP sequence number received over time in the x-axis
-plt.figure(figsize=(12,6))
 plt.scatter(track_packet_num_time_buffer,track_packet_num_buffer, c='blue')
 plt.xlabel('Time in seconds')
 plt.ylabel('TCP sequence number')
 plt.title('TCP sequence number received over time')
-
-# plot TCP sequence number dropped over time in the x-axis
-plt.figure(figsize=(12,6))
-plt.plot(lost_packets_time_buffer, lost_packets_buffer)  
-plt.xlabel('Time in seconds')
-plt.ylabel('TCP sequence number')
-plt.title('TCP sequence number dropped over time')
 
 # plot TCP sequence number dropped over time in the x-axis
 plt.figure(figsize=(12,6))

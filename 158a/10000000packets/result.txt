@@ -1,3 +1,26 @@
 PS C:\Users\Lian\CS158a> & C:/Users/Lian/AppData/Local/Programs/Python/Python39/python.exe c:/Users/Lian/CS158a/158a/server8.py
 DESKTOP-7UFRKKV ip address:  10.0.0.175
 
+All the packets have been received
+Elapsed time:  25637.4 seconds
+Elapsed time:  427.3 minutes
+Total packets required: 10000000
+shiyunlian@Shiyuns-MacBook-Air 158a % python server8.py
+Shiyuns-MacBook-Air.local ip address:  127.0.0.1
+
+
+DESKTOP-7UFRKKV ip address:  10.0.0.175
+Sent total packets: 15870145
+Received total packets: 10000000
+Lost total packets: 158797
+Resent total packets:  5870145
+Average good-put:  0.64
+Packet resent time 1: 3380943
+Packet resent time 2: 1839700
+Packet resent time 3: 527661
+Packet resent time 4: 104532
+Packet resent time 5: 15325
+Packet resent time 6: 1872
+Packet resent time 7: 112
+Packet resent time 8: 0
+Resent total packets: 5870145
