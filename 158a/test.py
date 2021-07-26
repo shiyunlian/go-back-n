@@ -1,22 +1,7 @@
-# import time
-# def foo(x,y):
-#         tt = time.time()
-#         s = 0
-#         for i in range(x,y):
-#                 s += i
-#         print('Time used: {} sec'.format(time.time()-tt))
-#         return s
- 
-# print(foo(1,100000000))
+import socket, random, time
+import matplotlib.pyplot as plt
 
-from numba import jit
-import time
-@jit
-def foo(x,y):
-        t = time.time()
-        s = 0
-        for i in range(x,y):
-                s += i
-        print('Time used: {} sec'.format(time.time()-t))
-        return s
-print(foo(1,100000000))
+# get the hostname and ip
+host = socket.gethostname()
+ip = socket.gethostbyname(host)
+print(host, "ip address: ", ip)

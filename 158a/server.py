@@ -1,10 +1,18 @@
 import socket, random, time
 import matplotlib.pyplot as plt
 
-# get the hostname and ip
+# get server's ip address
 host = socket.gethostname()
-ip = socket.gethostbyname(host)
-print(host, "ip address: ", ip)
+try:
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    # doesn't even have to be reachable
+    s.connect(('10.255.255.255', 1))
+    IP = s.getsockname()[0]
+    print(host, 'ip address:', IP)
+except:
+    IP = '127.0.0.1'
+finally:
+    s.close()
 
 # create a socket
 server_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)  
@@ -314,7 +322,6 @@ conn.close()
 print("Elapsed time: ", round((end_time - start_time), 1), "seconds")
 print("Elapsed time: ", round((end_time - start_time)/60, 1), "minutes")
 print("Total packets required:", packet_num)
-print(host, "ip address: ", ip)
 print("Sent total packets:", CalculateSentPackets())
 print("Received total packets:", len(track_packet_num_buffer))
 print("Lost total packets:", len(lost_packets_buffer))

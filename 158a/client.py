@@ -1,19 +1,19 @@
 import socket, time, statistics
 from statistics import mode
 
-# get sender's ip address
+# get client's ip address
+host = socket.gethostname()
 try:
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     # doesn't even have to be reachable
     s.connect(('10.255.255.255', 1))
-    host = socket.gethostname()
     IP = s.getsockname()[0]
     print(host, 'ip address:', IP)
 except:
     IP = '127.0.0.1'
 finally:
     s.close()
-#serverName='73.92.37.235'
+
 serverName='10.0.0.175'
 port = 12340 # socket server port number 
 client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM) 
