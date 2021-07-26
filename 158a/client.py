@@ -5,13 +5,13 @@ serverName='10.0.0.175'
 
 host = socket.gethostname() 
 ip =  socket.gethostbyname(host)
-port = 12340 # socket server port number
-client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)  
 print(host, "ip address: ", ip)
 
 # initiates the TCP connection between the client and server.
-client_socket.connect((host, port)) 
-#client_socket.connect((serverName, port)) 
+port = 12340 # socket server port number 
+client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM) 
+#client_socket.connect((host, port)) 
+client_socket.connect((serverName, port)) 
 
 # send an initial message through the client’s socket and into the TCP connection
 request = 'network'
@@ -31,7 +31,7 @@ next_seqnum = 0
 is_packet_lost = False
 is_all_packets_sent = False
 limit = 65536
-packet_num = 10000
+packet_num = 100000
 countdown = int(packet_num / limit)+1
 print("Total number of packets to be sent is", packet_num, "Countdown is", countdown)
 
