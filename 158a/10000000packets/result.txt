@@ -5,7 +5,7 @@ All the packets have been received
 Elapsed time:  25637.4 seconds
 Elapsed time:  427.3 minutes
 Total packets required: 10000000
-shiyunlian@Shiyuns-MacBook-Air 158a % python server8.py
+shiyunlian@Shiyuns-MacBook-Air 158a % python client.py
 Shiyuns-MacBook-Air.local ip address:  127.0.0.1
 
 

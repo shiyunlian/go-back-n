@@ -361,7 +361,7 @@ print("Packet resent time 8:", packets_resent_times[9]*8)
 print("Resent total packets:",packets_resent_times[2]+packets_resent_times[3]*2+packets_resent_times[4]*3+packets_resent_times[5]*4+packets_resent_times[6]*5+packets_resent_times[7]*6+packets_resent_times[8]*7+packets_resent_times[9]*8)
   
 # plot TCP receiver window size over time in the x-axis
-plt.figure(figsize=(8,6))
+plt.figure(figsize=(12,6))
 plt.plot(win_size_time_buffer, win_size_buffer)  
 # x-axis label
 plt.xlabel('Time in seconds')
@@ -371,26 +371,33 @@ plt.ylabel('Window size')
 plt.title('Window size over time')
 
 # plot TCP sequence number received over time in the x-axis
-plt.figure(figsize=(8,6))
+plt.figure(figsize=(12,6))
 plt.plot(track_packet_num_time_buffer,track_packet_num_buffer)
 plt.xlabel('Time in seconds')
 plt.ylabel('TCP sequence number')
 plt.title('TCP sequence number received over time')
 
+# plot TCP sequence number received over time in the x-axis
+plt.figure(figsize=(12,6))
+plt.scatter(track_packet_num_time_buffer,track_packet_num_buffer, c='blue')
+plt.xlabel('Time in seconds')
+plt.ylabel('TCP sequence number')
+plt.title('TCP sequence number received over time')
+
 # plot TCP sequence number dropped over time in the x-axis
-plt.figure(figsize=(8,6))
+plt.figure(figsize=(12,6))
 plt.plot(lost_packets_time_buffer, lost_packets_buffer)  
 plt.xlabel('Time in seconds')
 plt.ylabel('TCP sequence number')
 plt.title('TCP sequence number dropped over time')
 
 # plot TCP sequence number dropped over time in the x-axis
-plt.figure(figsize=(8,6))
-plt.scatter(lost_packets_time_buffer, lost_packets_buffer, marker='*')
+plt.figure(figsize=(12,6))
+plt.scatter(lost_packets_time_buffer, lost_packets_buffer, c='blue')
+# plt.scatter(lost_packets_time_buffer, lost_packets_buffer, marker='*')
 plt.xlabel('Time in seconds')
 plt.ylabel('TCP sequence number')
 plt.title('TCP sequence number dropped over time')
 
 # function to show the plot
 plt.show()
-

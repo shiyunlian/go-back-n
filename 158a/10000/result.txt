@@ -1,0 +1,17 @@
+Elapsed time:  20.5 seconds
+Elapsed time:  0.3 minutes
+Total packets required: 10000
+DESKTOP-7UFRKKV ip address:  10.0.0.175
+Sent total packets: 15916
+Received total packets: 10000
+Lost total packets: 158
+Resent total packets:  5916
+Average good-put:  0.64
+Packet resent time 1: 3539
+Packet resent time 2: 1484
+Packet resent time 3: 582
+Packet resent time 4: 276
+Packet resent time 5: 35
+Packet resent time 6: 0
+Packet resent time 7: 0
+Packet resent time 8: 0

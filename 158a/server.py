@@ -35,7 +35,7 @@ win_size_time_buffer = []  # an array to keep track of the time when window size
 
 sent_complete = False   # indicate if every 65535 packets are sent successfully
 limit = 65536   # sequence number limit
-packet_num = 10000000     # total packets to be sent
+packet_num = 10000     # total packets to be sent
 expected_packet = 0 # expected packet to be received
 
 # indicate if there is packet dropped
@@ -343,6 +343,13 @@ plt.title('Window size over time')
 
 # plot TCP sequence number received over time in the x-axis
 plt.figure(figsize=(12,6))
+plt.plot(track_packet_num_time_buffer,track_packet_num_buffer)
+plt.xlabel('Time in seconds')
+plt.ylabel('TCP sequence number')
+plt.title('TCP sequence number received over time')
+
+# plot TCP sequence number received over time in the x-axis
+plt.figure(figsize=(12,6))
 plt.scatter(track_packet_num_time_buffer,track_packet_num_buffer, c='blue')
 plt.xlabel('Time in seconds')
 plt.ylabel('TCP sequence number')
@@ -350,7 +357,15 @@ plt.title('TCP sequence number received over time')
 
 # plot TCP sequence number dropped over time in the x-axis
 plt.figure(figsize=(12,6))
+plt.plot(lost_packets_time_buffer, lost_packets_buffer)  
+plt.xlabel('Time in seconds')
+plt.ylabel('TCP sequence number')
+plt.title('TCP sequence number dropped over time')
+
+# plot TCP sequence number dropped over time in the x-axis
+plt.figure(figsize=(12,6))
 plt.scatter(lost_packets_time_buffer, lost_packets_buffer, c='blue')
+# plt.scatter(lost_packets_time_buffer, lost_packets_buffer, marker='*')
 plt.xlabel('Time in seconds')
 plt.ylabel('TCP sequence number')
 plt.title('TCP sequence number dropped over time')

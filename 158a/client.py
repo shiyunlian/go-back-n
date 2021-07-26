@@ -28,9 +28,10 @@ win_size_time_buffer = []
 # use two pointers to keep track of the window size between [send_base, next_seqnum -1], intial send_base and next_seqnum are 0
 send_base = 0
 next_seqnum = 0
-
+is_packet_lost = False
+is_all_packets_sent = False
 limit = 65536
-packet_num = 10000000
+packet_num = 10000
 countdown = int(packet_num / limit)+1
 print("Total number of packets to be sent is", packet_num, "Countdown is", countdown)
 
@@ -59,12 +60,6 @@ def ExpandWindowSize():
     else:
         print("Window size remains to be 128")
     win_size_buffer.append(win_size)
-
-# start the time
-start_time = time.time()
-is_packet_lost = False
-is_all_packets_sent = False
-
 while countdown > 0:
 
     packet_list=''
@@ -153,9 +148,6 @@ while countdown > 0:
     
     print("next seqnum", next_seqnum)
     
-# end time and calculate elapsed_time
-end_time = time.time()
-print("Elapsed time: ", round(end_time - start_time, 1))
 print(host, "ip address: ", ip)
 
 # close the connection
