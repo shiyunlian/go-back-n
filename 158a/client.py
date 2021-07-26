@@ -31,7 +31,7 @@ next_seqnum = 0
 is_packet_lost = False
 is_all_packets_sent = False
 limit = 65536
-packet_num = 100000
+packet_num = 10000000
 countdown = int(packet_num / limit)+1
 print("Total number of packets to be sent is", packet_num, "Countdown is", countdown)
 

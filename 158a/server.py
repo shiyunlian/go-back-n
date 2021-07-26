@@ -35,7 +35,7 @@ win_size_time_buffer = []  # an array to keep track of the time when window size
 
 sent_complete = False   # indicate if every 65535 packets are sent successfully
 limit = 65536   # sequence number limit
-packet_num = 10000     # total packets to be sent
+packet_num = 10000000     # total packets to be sent
 expected_packet = 0 # expected packet to be received
 
 # indicate if there is packet dropped
@@ -322,13 +322,14 @@ print("Resent total packets: ",CalculateSentPackets() - packet_num)
 print("Average good-put: ", CalculateAvgGoodPut())
 
 print("Packet resent time 1:", packets_resent_times[2])
-print("Packet resent time 2:", packets_resent_times[3]*2)
-print("Packet resent time 3:", packets_resent_times[4]*3)
-print("Packet resent time 4:", packets_resent_times[5]*4)
-print("Packet resent time 5:", packets_resent_times[6]*5)
-print("Packet resent time 6:", packets_resent_times[7]*6)
-print("Packet resent time 7:", packets_resent_times[8]*7)
-print("Packet resent time 8:", packets_resent_times[9]*8)
+print("Packet resent time 2:", packets_resent_times[3])
+print("Packet resent time 3:", packets_resent_times[4])
+print("Packet resent time 4:", packets_resent_times[5])
+print("Packet resent time 5:", packets_resent_times[6])
+print("Packet resent time 6:", packets_resent_times[7])
+print("Packet resent time 7:", packets_resent_times[8])
+print("Packet resent time 8:", packets_resent_times[9])
+
 print("Resent total packets:",packets_resent_times[2]+packets_resent_times[3]*2+packets_resent_times[4]*3+packets_resent_times[5]*4+packets_resent_times[6]*5+packets_resent_times[7]*6+packets_resent_times[8]*7+packets_resent_times[9]*8)
   
 # plot TCP receiver window size over time in the x-axis
