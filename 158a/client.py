@@ -13,7 +13,7 @@ except:
     IP = '127.0.0.1'
 finally:
     s.close()
-
+#serverName='73.92.37.235'
 serverName='10.0.0.175'
 port = 12340 # socket server port number 
 client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM) 
@@ -154,8 +154,6 @@ while countdown > 0:
         send_base = 0
     
     print("next seqnum", next_seqnum)
-    
-print(host, "ip address: ", ip)
 
 # close the connection
 client_socket.close()
